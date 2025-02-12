@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # Name: magmad.install.sh
 # Author: Ladar Levison
 #
@@ -15,7 +17,7 @@ DOMAIN="example.com"
 # TLSKEY="/root/example.com.pem"
 
 # The DKIM key file. Leave commented out to generate a new key and print the associated DNS record.
-# DKIMKEY="/root/dkim.example.com.pem"
+# DKIMKEY="/root/dkim.example.co m.pem"
 
 
 
@@ -29,24 +31,91 @@ if [ $? != 0 ]; then
 	exit 1
 fi
 
-# Update the system.
-yum --assumeyes update
+LOGFILE="/var/log/magmad_install.log"
+
+# Function to log messages
+log() {
+	local MESSAGE="$1"
+	echo "$(date '+%Y-%m-%d %H:%M:%S') : $MESSAGE" | tee -a "$LOGFILE"
+}
+
+# Function to install necessary packages
+install_packages() {
+	log "Updating system and installing packages..."
+	echo "Updating system and installing packages..." # Progress indicator
+	yum --assumeyes update >> "$LOGFILE" 2>&1
+	yum --assumeyes --enablerepo=extras install epel-release >> "$LOGFILE" 2>&1
+	yum --assumeyes install valgrind valgrind-devel texinfo autoconf automake libtool \
+	ncurses-devel gcc-c++ libstdc++-devel gcc cloog-ppl cpp glibc-devel glibc-headers \
+	kernel-headers libgomp mpfr ppl perl perl-Module-Pluggable perl-Pod-Escapes \
+	perl-Pod-Simple perl-libs perl-version patch sysstat perl-Time-HiRes cmake \
+	libbsd libbsd-devel inotify-tools libarchive libevent memcached mysql \
+	mysql-server perl-DBI perl-DBD-MySQL git rsync perl-Git perl-Error perl-libintl \
+	perl-Text-Unidecode policycoreutils checkpolicy >> "$LOGFILE" 2>&1
+	log "Package installation completed."
+	echo "Package installation completed." # Progress indicator
+}
+
+# Function to configure MySQL
+configure_mysql() {
+	log "Configuring MySQL..."
+	echo "Configuring MySQL..." # Progress indicator
+	yum --assumeyes install mysql mysql-server mariadb mariadb-server >> "$LOGFILE" 2>&1
+	/sbin/chkconfig mysqld on >> "$LOGFILE" 2>&1
+	/sbin/service mysqld start >> "$LOGFILE" 2>&1
+	mysqladmin --force=true --user=root drop test >> "$LOGFILE" 2>&1
+	mysqladmin --force=true --user=root create Magma >> "$LOGFILE" 2>&1
+	PROOT=$(openssl rand -base64 30 | sed -e "s/\//@-/g" | sed -e "s/\+/_\?/g")
+	mysqladmin --user=root password "$PROOT" >> "$LOGFILE" 2>&1
+	printf "\n[mysql]\nuser=root\npassword=$PROOT\ndatabase=Magma\nsocket=/var/lib/mysql/mysql.sock\nsafe-updates\n\n" >> /root/.my.cnf 
+	printf "\n\n[mysqldump]\nuser=root\npassword=$PROOT\nsocket=/var/lib/mysql/mysql.sock\n\n" >> /root/.my.cnf 
+	printf "\n\n[mysqladmin]\nuser=root\npassword=$PROOT\nsocket=/var/lib/mysql/mysql.sock\n\n" >> /root/.my.cnf 
+	log "MySQL configuration completed."
+	echo "MySQL configuration completed." # Progress indicator
+}
+
+# Function to setup the firewall
+setup_firewall() {
+	log "Configuring firewall..."
+	echo "Configuring firewall..." # Progress indicator
+	iptables -P INPUT OUTPUT FORWARD >> "$LOGFILE" 2>&1
+	iptables -F >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -p icmp -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -i lo -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 25 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 26 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 110 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 143 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 465 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 587 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 993 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -m state --state NEW -m tcp -p tcp --dport 995 -j ACCEPT >> "$LOGFILE" 2>&1
+	iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited >> "$LOGFILE" 2>&1
+	iptables -A FORWARD -j REJECT --reject-with icmp-host-prohibited >> "$LOGFILE" 2>&1
+	/sbin/service iptables save >> "$LOGFILE" 2>&1
+	/sbin/service iptables restart >> "$LOGFILE" 2>&1
+	log "Firewall configuration completed."
+	echo "Firewall configuration completed." # Progress indicator
+}
+
+# Main script execution
+main() {
+	log "Starting Magma installation script."
+	echo "Starting Magma installation script..." # Progress indicator
+	install_packages
+	configure_mysql
+	setup_firewall
+	log "Magma installation script completed."
+	echo "Magma installation script completed." # Progress indicator
+}
+
+main "$@"
 
 # Override the default run levels for the entropy gathering daemon. We'd like it to start before 
 # OpenSSH and magmad, so those processes don't spend as much time waiting for randomness.
 printf "# chkconfig: - 54 25\n" > /etc/chkconfig.d/haveged
-
-# Install the EPEL repo.
-yum --assumeyes --enablerepo=extras install epel-release
-
-# Add the packages needed to compile/run magma.
-yum --assumeyes install valgrind valgrind-devel texinfo autoconf automake libtool \
-ncurses-devel gcc-c++ libstdc++-devel gcc cloog-ppl cpp glibc-devel glibc-headers \
-kernel-headers libgomp mpfr ppl perl perl-Module-Pluggable perl-Pod-Escapes \
-perl-Pod-Simple perl-libs perl-version patch sysstat perl-Time-HiRes cmake \
-libbsd libbsd-devel inotify-tools libarchive libevent memcached mysql \
-mysql-server perl-DBI perl-DBD-MySQL git rsync perl-Git perl-Error perl-libintl \
-perl-Text-Unidecode policycoreutils checkpolicy
 
 # Configure the entropy gathering daemon to autostart, then launch it. Extra entropy will 
 # speed a number of randomness intensive operations. 
@@ -79,20 +148,6 @@ cp /etc/cron.daily/freshclam /etc/cron.hourly/
 
 # Update the database.
 /etc/cron.hourly/freshclam
-
-# The commands, just in case you need to wipe an existing MySQL configuration and then initialize a virgin instance.
-# rm -rf /var/lib/mysql/
-# mkdir -p /var/lib/mysql/
-# chown mysql:mysql /var/lib/mysql/
-# chcon system_u:object_r:mysqld_db_t:s0 /var/lib/mysql/
-# mysql_install_db
-# service mysqld restart
-
-yum --assumeyes install mysql mysql-server mariadb mariadb-server
-
-# Configure the mysqld instance to autostart during boot, then start the daemon.
-/sbin/chkconfig mysqld on
-/sbin/service mysqld start
 
 # Drop the test database.
 mysqladmin --force=true --user=root drop test
@@ -556,5 +611,4 @@ chcon system_u:object_r:var_run_t:s0 /var/run/magmad/
 chkconfig --add magmad
 chkconfig magmad on
 service magmad start
-
 
