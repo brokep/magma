@@ -11,15 +11,16 @@ ZLIB="zlib-1.2.11"
 JPEG="jpeg-9d"
 PCRE="pcre2-10.31"
 BZIP2="bzip2-1.0.8"
-DSPAM="dspam-3.10.2"
 GEOIP="GeoIP-1.4.8"
 #CLAMAV="clamav-0.105.0"
 CLAMAV="clamav-0.103.6"
-MARIADB="mariadb-connector-c-2.3.7"
+#MARIADB="mariadb-connector-c-2.3.7"
+MARIADB="mariadb-connector-c-3.2.6"
 CHECKER="check-0.11.0"
 OPENSSL="openssl-1.0.2u"
 GOOGTAP="gtest-tap-listener-0.5"
 GOOGTEST="googletest-release-1.7.0"
+# GOOGTEST="googletest-release-1.12.1"
 JANSSON="jansson-2.2.1"
 UTF8PROC="utf8proc-2.5.0"
 FREETYPE="freetype-2.10.2"
@@ -61,10 +62,10 @@ M_PKGPATH="$M_LDPATH/pkgconfig/"
 M_SYM_FILE="$M_PROJECT_ROOT/src/providers/symbols.h"
 
 # The following symbols are not in defined in any of the public header files.
-M_SYM_SKIP="tcndbgetboth|my_once_free|lt_dlexit"
+M_SYM_SKIP="tcndbgetboth|lt_dlexit"
 
 # The paths searched for all of the included header files.
-M_SYM_INCLUDES="-I$M_LOCAL/include -I$M_LOCAL/include/curl -I$M_LOCAL/include/dspam -I$M_LOCAL/include/freetype2 \
+M_SYM_INCLUDES="-I$M_LOCAL/include -I$M_LOCAL/include/curl -I$M_LOCAL/include/freetype2 \
 -I$M_LOCAL/include/freetype2/freetype -I$M_LOCAL/include/libmemcached -I$M_LOCAL/include/libxml2 -I$M_LOCAL/include/spf2 \
 -I$M_LOCAL/include/lzo -I$M_LOCAL/include/mariadb -I$M_LOCAL/include/opendkim -I$M_LOCAL/include/openssl"
 

@@ -51,16 +51,6 @@ cl_error_t (*cl_engine_set_str_d)(struct cl_engine *engine, enum cl_engine_field
 cl_error_t (*cl_load_d)(const char *path, struct cl_engine *engine, unsigned int *signo, unsigned int dboptions) = NULL;
 cl_error_t (*cl_scandesc_d)(int desc, const char *filename, const char **virname, unsigned long int *scanned, const struct cl_engine *engine, struct cl_scan_options *scanoptions) = NULL;
 
-//! DSPAM
-const char * (*dspam_version_d)(void) = NULL;
-int (*dspam_detach_d)(DSPAM_CTX *CTX) = NULL;
-void (*dspam_destroy_d)(DSPAM_CTX * CTX) = NULL;
-int (*dspam_init_driver_d)(DRIVER_CTX *DTX) = NULL;
-int (*dspam_shutdown_driver_d)(DRIVER_CTX *DTX) = NULL;
-int (*dspam_attach_d)(DSPAM_CTX *CTX, void *dbh) = NULL;
-int (*dspam_process_d)(DSPAM_CTX * CTX, const char *message) = NULL;
-DSPAM_CTX * (*dspam_create_d)(const char *username, const char *group, const char *home, int operating_mode, u_int32_t flags) = NULL;
-
 //! DKIM
 /// @note that dkim_getsighdr_d is used by the library, so were using dkim_getsighdrx_d.
 DKIM_STAT (*dkim_eoh_d)(DKIM *dkim) = NULL;
@@ -107,7 +97,6 @@ int (*lzo1x_1_compress_d)(const lzo_byte *src, lzo_uint src_len, lzo_byte *dst, 
 int (*lzo1x_decompress_safe_d)(const lzo_byte *src, lzo_uint src_len, lzo_byte *dst, lzo_uintp dst_len, lzo_voidp wrkmem) = NULL;
 
 //! MYSQL
-void (*my_once_free_d)(void) = NULL;
 void (*mysql_server_end_d)(void) = NULL;
 void (*mysql_thread_end_d)(void) = NULL;
 int (*mysql_ping_d)(MYSQL *mysql) = NULL;
@@ -678,7 +667,7 @@ bool_t lib_load(void) {
 		return false;
 	}
 
-	else if (!lib_load_bzip() || !lib_load_cache() || !lib_load_clamav() || !lib_load_dkim() || !lib_load_dspam() ||
+	else if (!lib_load_bzip() || !lib_load_cache() || !lib_load_clamav() || !lib_load_dkim() || 
 		!lib_load_freetype() || !lib_load_gd() || !lib_load_jansson() || !lib_load_jpeg() || !lib_load_lzo() || !lib_load_utf8proc() ||
 		!lib_load_mysql() || !lib_load_openssl() || !lib_load_png() || !lib_load_spf() || !lib_load_tokyo() || !lib_load_xml() ||
 		!lib_load_zlib()) {
@@ -690,7 +679,7 @@ bool_t lib_load(void) {
     "%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n\n" \
     "%-10.10s %63.63s\n%-10.10s %63.63s\n\n" \
     "%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n\n" \
-    "%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n" \
+    "%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n%-10.10s %63.63s\n" \
     "%-10.10s %63.63s\n",
     "MAGMA:", build_version(),
     "COMMIT:", build_commit(),
@@ -704,7 +693,6 @@ bool_t lib_load(void) {
     "BZIP:", lib_version_bzip(),
     "CLAMAV:", lib_version_clamav(),
     "DKIM:", lib_version_dkim(),
-    "DSPAM:", lib_version_dspam(),
     "FREETYPE", lib_version_freetype(),
     "GD", lib_version_gd());
 

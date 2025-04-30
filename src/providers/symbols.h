@@ -78,12 +78,6 @@
 #include <opendkim/dkim-test.h>
 #undef lint
 
-// DSPAM
-#define CONFIG_DEFAULT ""
-#define LOGDIR "~/"
-#include <dspam/libdspam.h>
-#include <dspam/mysql_drv.h>
-
 // Jansson
 #include <jansson.h>
 
@@ -153,16 +147,6 @@ extern cl_error_t (*cl_engine_set_str_d)(struct cl_engine *engine, enum cl_engin
 extern cl_error_t (*cl_load_d)(const char *path, struct cl_engine *engine, unsigned int *signo, unsigned int dboptions);
 extern cl_error_t (*cl_scandesc_d)(int desc, const char *filename, const char **virname, unsigned long int *scanned, const struct cl_engine *engine, struct cl_scan_options *scanoptions);
 
-//! DSPAM
-extern const char * (*dspam_version_d)(void);
-extern int (*dspam_detach_d)(DSPAM_CTX *CTX);
-extern void (*dspam_destroy_d)(DSPAM_CTX * CTX);
-extern int (*dspam_init_driver_d)(DRIVER_CTX *DTX);
-extern int (*dspam_shutdown_driver_d)(DRIVER_CTX *DTX);
-extern int (*dspam_attach_d)(DSPAM_CTX *CTX, void *dbh);
-extern int (*dspam_process_d)(DSPAM_CTX * CTX, const char *message);
-extern DSPAM_CTX * (*dspam_create_d)(const char *username, const char *group, const char *home, int operating_mode, u_int32_t flags);
-
 //! DKIM
 /// Note that dkim_getsighdr_d is used by the library, so were using dkim_getsighdrx_d.
 /// Note that dkim_test_dns_put_d is only used by the verification unit test, to load public keys which may no
@@ -211,7 +195,6 @@ extern int (*lzo1x_1_compress_d)(const lzo_byte *src, lzo_uint src_len, lzo_byte
 extern int (*lzo1x_decompress_safe_d)(const lzo_byte *src, lzo_uint src_len, lzo_byte *dst, lzo_uintp dst_len, lzo_voidp wrkmem);
 
 //! MYSQL
-extern void (*my_once_free_d)(void);
 extern void (*mysql_server_end_d)(void);
 extern void (*mysql_thread_end_d)(void);
 extern int (*mysql_ping_d)(MYSQL *mysql);
