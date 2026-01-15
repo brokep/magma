@@ -294,10 +294,11 @@ hashed_bucket_t * hashed_cursor_active(hashed_cursor_t *cursor) {
 				count++;
 			}
 
-			if (loop && count == cursor->count) {
-				cursor->bucket = bucket = loop;
-				cursor->count = 1;
-			}
+                        if (loop && count == cursor->count) {
+                                cursor->bucket = bucket = loop;
+                                cursor->count = 1;
+                                cursor->serial = cursor->inx->serial;
+                        }
 		}
 	}
 

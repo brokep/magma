@@ -36,7 +36,7 @@ void mm_cleanup_variadic(ssize_t len, ...) {
  * @brief	Determine whether the memory buffer and/or its length encompass an empty block.
  * @param	block	a pointer to the block of memory to be assessed.
  * @param	len		the length, in bytes, of the memory block.
- * @return	false if block is NULL or len is 0; true otherwise.
+ * @return	true if block is NULL or len is 0; false otherwise.
  */
 bool_t mm_empty(void *block, size_t len) {
 
